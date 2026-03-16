@@ -33,6 +33,9 @@ app.get('/', (req, res) => {
 app.post('/api/book-appointment', async (req, res) => {
   try {
     const args = req.body?.message?.toolCallList?.[0]?.function?.arguments || req.body;
+    console.log('Received args:', JSON.stringify(args));
+    console.log('Clinic ID:', getClinicId(req));
+
     const {
       patient_name, patient_phone, patient_email,
       appointment_date, appointment_time,
@@ -41,13 +44,16 @@ app.post('/api/book-appointment', async (req, res) => {
 
     const clinicId = getClinicId(req);
 
-    const { data: clinic } = await supabase
+    const { data: clinic, error: clinicError } = await supabase
       .from('clinics')
       .select('name, address, phone, timezone')
       .eq('id', clinicId)
       .single();
 
-    await supabase.from('appointments').insert({
+    console.log('Clinic found:', clinic);
+    console.log('Clinic error:', clinicError);
+
+    const { data: appt, error: apptError } = await supabase.from('appointments').insert({
       clinic_id: clinicId,
       patient_name,
       patient_phone,
@@ -60,6 +66,8 @@ app.post('/api/book-appointment', async (req, res) => {
       status: 'confirmed',
       booked_via: 'ai_receptionist'
     });
+
+    console.log('Appointment insert error:', apptError);
 
     if (patient_phone) {
       await twilioClient.messages.create({
