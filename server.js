@@ -103,12 +103,12 @@ app.post('/api/save-lead', async (req, res) => {
     const clinicId = getClinicId(req);
 
     await supabase.from('leads').insert({
-      clinic_id: clinicId,
-      name: patient_name,
-      phone: patient_phone,
-      email: patient_email,
-      reason,
-      callback_requested: callback_requested || false
+    clinic_id: clinicId,
+    patient_name: patient_name,
+    patient_phone: patient_phone,
+    email: patient_email,
+    reason,
+    callback_requested: callback_requested || false
     });
 
     if (callback_requested) {
